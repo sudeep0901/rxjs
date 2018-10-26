@@ -1,6 +1,6 @@
 import { Observable, of, from, fromEvent, concat, Subscriber, interval, throwError } from 'rxjs';
 import { ajax, AjaxResponse } from 'rxjs/ajax';
-import { map, filter, mergeMap, tap, catchError } from 'rxjs/operators';
+import { map, filter, mergeMap, tap, catchError, take, takeUntil } from 'rxjs/operators';
 
 import { allBooks, allReaders } from './data';
 import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
@@ -164,9 +164,29 @@ let timer$ = new Observable(subscriber => {
 
 
 
+// let timerSubscription = timer$
+// .pipe(take(3))
+// .subscribe(
+//   value => timesDiv.innerHTML += `${new Date().toLocaleTimeString()}  (${value}) <br />`,
+//   null,
+//   () => console.log("completed")
+
+// );
+
+
+let cancelTimer$ = fromEvent(button, 'click');
+let timerSubscription = timer$
+.pipe(takeUntil(cancelTimer$))
+.subscribe(
+  value => timesDiv.innerHTML += `${new Date().toLocaleTimeString()}  (${value}) <br />`,
+  null,
+  () => console.log("completed")
+
+);
 
 
 let source$ = of(1, 2, 3, 4);
+
 
 source$.pipe(
   map(value => value * 2),
