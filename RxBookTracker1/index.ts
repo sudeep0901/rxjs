@@ -1,6 +1,7 @@
-import { Observable, of, from, fromEvent, concat } from 'rxjs';
+import { Observable, of, from, fromEvent, concat, Subscriber, interval } from 'rxjs';
 import { ajax } from 'rxjs/ajax';
 import { allBooks, allReaders } from './data';
+import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
 
 // let allBooksObservable$ = Observable.create(subscriber => {
 
@@ -17,7 +18,7 @@ import { allBooks, allReaders } from './data';
 //   }, 2000);
 
 //   return () => console.log('Executing teardown code.');
-  
+
 // });
 
 // allBooksObservable$.subscribe(book => console.log(book.title));
@@ -48,6 +49,8 @@ import { allBooks, allReaders } from './data';
 //     }
 //   });
 
+//#region 
+
 
 let button = document.getElementById('readersButton');
 
@@ -66,3 +69,98 @@ fromEvent(button, 'click')
 
       });
   });
+
+//#endregion
+
+let books$ = from(allBooks);
+
+let bookObserver = {
+
+  next: book => console.log(`TITLE: ${book.title}`),
+  err: err => console.log(`error: ${err}`),
+  complete: () => console.log('Completed: All Done')
+};
+
+books$.subscribe(bookObserver);
+
+books$.subscribe(
+  book => console.log(`TITLE: ${book.title}`),
+  err => console.log(`error: ${err}`),
+  () => console.log('Completed: All Done')
+);
+
+
+books$.subscribe(
+  null,
+  null,
+  () => console.log('Completed: All Done')
+);
+
+//multiple observers for an observables
+
+let currenttime$ = new Observable(subscriber => {
+
+  const timeString = new Date().toLocaleTimeString();
+  subscriber.next(timeString);
+  subscriber.complete();
+});
+
+currenttime$.subscribe(
+  currentTime => console.log(`observer 1 : ${currentTime}`)
+);
+
+setTimeout(() => {
+  currenttime$.subscribe(
+    currentTime => console.log(`observer 2 : ${currentTime}`)
+  );
+}, 1000);
+
+setTimeout(() => {
+  currenttime$.subscribe(
+    currentTime => console.log(`observer 3 : ${currentTime}`)
+  );
+}, 1000);
+
+
+let timerButton = document.getElementById('timerButton');
+console.log(timerButton);
+let timesDiv = document.getElementById('timers');
+
+
+// let timer$ = interval(1000); //Creating Observable
+
+let timer$ = new Observable(subscriber => {
+  let i = 0;
+  let intervalID = setInterval(() => {
+    subscriber.next(i++)
+  }, 1000);
+
+  return () => {
+    console.log("Executing teardown code");
+    clearInterval(intervalID);
+  }
+});
+
+let timerSubscription = timer$.subscribe(
+  value => timesDiv.innerHTML += `${new Date().toLocaleTimeString()}  (${value}) <br />`,
+  null,
+  () => console.log("completed")
+
+);
+
+let timerConsoleSubscription = timer$.subscribe(
+  value => console.log(`${new Date().toLocaleTimeString()}  (${value}) <br />`),
+  
+);
+
+// can canel more than once suscription at once
+timerSubscription.add(timerConsoleSubscription);
+fromEvent(timerButton, 'click').subscribe(
+  event => timerSubscription.unsubscribe() // wont get completion code when cancelled subs
+
+);
+
+
+
+
+
