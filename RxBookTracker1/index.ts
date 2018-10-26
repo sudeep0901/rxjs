@@ -1,6 +1,6 @@
-import { Observable, of, from, fromEvent, concat, Subscriber, interval } from 'rxjs';
-import { ajax } from 'rxjs/ajax';
-import { map, filter } from 'rxjs/operators';
+import { Observable, of, from, fromEvent, concat, Subscriber, interval, throwError } from 'rxjs';
+import { ajax, AjaxResponse } from 'rxjs/ajax';
+import { map, filter, mergeMap, tap, catchError } from 'rxjs/operators';
 
 import { allBooks, allReaders } from './data';
 import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
@@ -143,24 +143,24 @@ let timer$ = new Observable(subscriber => {
   }
 });
 
-let timerSubscription = timer$.subscribe(
-  value => timesDiv.innerHTML += `${new Date().toLocaleTimeString()}  (${value}) <br />`,
-  null,
-  () => console.log("completed")
+// let timerSubscription = timer$.subscribe(
+//   value => timesDiv.innerHTML += `${new Date().toLocaleTimeString()}  (${value}) <br />`,
+//   null,
+//   () => console.log("completed")
 
-);
+// );
 
-let timerConsoleSubscription = timer$.subscribe(
-  value => console.log(`${new Date().toLocaleTimeString()}  (${value}) <br />`),
+// let timerConsoleSubscription = timer$.subscribe(
+//   value => console.log(`${new Date().toLocaleTimeString()}  (${value}) <br />`),
 
-);
+// );
 
-// can canel more than once suscription at once
-timerSubscription.add(timerConsoleSubscription);
-fromEvent(timerButton, 'click').subscribe(
-  event => timerSubscription.unsubscribe() // wont get completion code when cancelled subs
+// // can canel more than once suscription at once
+// timerSubscription.add(timerConsoleSubscription);
+// fromEvent(timerButton, 'click').subscribe(
+//   event => timerSubscription.unsubscribe() // wont get completion code when cancelled subs
 
-);
+// );
 
 
 
@@ -175,3 +175,25 @@ source$.pipe(
   .subscribe(
     finalValue => console.log(finalValue)
   );
+
+
+
+//#region //using Operators
+
+// ajax('/api/books').pipe(
+ajax('/api/books/500').pipe(
+
+  mergeMap(ajaxResponse => ajaxResponse.response),
+  filter(bookFilter => bookFilter.publicationYear < 1950),
+  tap(oldbook => console.log(oldbook.title)),
+  // catchError(error => of({ title: 'title', author: 'author' }))
+  // catchError((err, caught) =>caught)
+  // catchError(err => throw `Something bad happended - ${err.message}`)
+  catchError(err => return throwError(`Something bad happended - ${err.message}`))
+
+)
+  .subscribe(
+    finalValue => console.log(finalValue),
+    error => console.log("error: ", error)
+  );
+  //#endregion
