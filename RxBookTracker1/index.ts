@@ -1,5 +1,7 @@
 import { Observable, of, from, fromEvent, concat, Subscriber, interval } from 'rxjs';
 import { ajax } from 'rxjs/ajax';
+import { map, filter } from 'rxjs/operators';
+
 import { allBooks, allReaders } from './data';
 import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
 
@@ -150,7 +152,7 @@ let timerSubscription = timer$.subscribe(
 
 let timerConsoleSubscription = timer$.subscribe(
   value => console.log(`${new Date().toLocaleTimeString()}  (${value}) <br />`),
-  
+
 );
 
 // can canel more than once suscription at once
@@ -164,3 +166,12 @@ fromEvent(timerButton, 'click').subscribe(
 
 
 
+let source$ = of(1, 2, 3, 4);
+
+source$.pipe(
+  map(value => value * 2),
+  filter(mappedValue => mappedValue > 5)
+)
+  .subscribe(
+    finalValue => console.log(finalValue)
+  );
