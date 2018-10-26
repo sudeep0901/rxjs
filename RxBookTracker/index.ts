@@ -1,7 +1,10 @@
-import { Observable, of, from , fromEvent, concat, merge } from 'rxjs';
+import { Observable, of, from, fromEvent, concat, merge } from 'rxjs';
 import { allBooks, allReaders } from './data';
+// import document   from 'rx-dom';
 
- let books = [];
+
+
+let books = [];
 
 
 function subscribe1(subscriber) {
@@ -44,7 +47,7 @@ function subscribe1(subscriber) {
 
 // using "of" function to create observable
 
-let source1$ = of('hello', 10 , true , allReaders[0].name);
+let source1$ = of('hello', 10, true, allReaders[0].name);
 
 // source1$.subscribe(value=>console.log(value));
 // console.log("Using of function to create observable");
@@ -55,9 +58,24 @@ let source2$ = from(allBooks);
 // source2$.subscribe(books=>console.log(books.title));
 
 //combine observable
-concat(source1$, source2$).subscribe(values=> console.log(values));
+concat(source1$, source2$).subscribe(values => console.log(values));
+merge(source1$, source2$).subscribe(values => console.log(values));
 
-merge(source1$, source2$).subscribe(values=> console.log(values));
+//handing DOM events usign observables
+
+let button1 = document.getElementById('readerButton');
+
+console.log(button1);
+fromEvent(button1, 'click').subscribe(event => {
+    console.log(event);
+    let readersDiv = document.getElementById("readers");
+
+    for (let readers of allReaders) {
+        readersDiv.innerHTML += readers.name + '<br />'
+
+    }
+
+});
 
 
 
